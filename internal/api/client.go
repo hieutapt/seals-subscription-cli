@@ -10,18 +10,20 @@ import (
 	"time"
 )
 
-const baseURL = "https://app.sealsubscriptions.com/shopify/merchant/api"
+const defaultBaseURL = "https://app.sealsubscriptions.com/shopify/merchant/api"
 
 // Client wraps the Seal Subscriptions API.
 type Client struct {
 	token      string
+	baseURL    string
 	httpClient *http.Client
 }
 
 // New creates a new API client with the given token.
 func New(token string) *Client {
 	return &Client{
-		token: token,
+		token:   token,
+		baseURL: defaultBaseURL,
 		httpClient: &http.Client{
 			Timeout:       30 * time.Second,
 			CheckRedirect: func(req *http.Request, via []*http.Request) error { return nil },
@@ -30,7 +32,7 @@ func New(token string) *Client {
 }
 
 func (c *Client) do(method, endpoint string, query url.Values, body interface{}) ([]byte, error) {
-	u := baseURL + endpoint + "/"
+	u := c.baseURL + endpoint + "/"
 	if len(query) > 0 {
 		u += "?" + query.Encode()
 	}

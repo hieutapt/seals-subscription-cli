@@ -8,7 +8,12 @@ go build -o seal-cli .  # explicit binary name
 go run . --help         # run without building
 ```
 
-No Makefile, no task runner. There are no tests yet.
+No Makefile, no task runner.
+
+```bash
+go test ./...             # run all tests
+go test ./internal/api/... -v  # run API tests with verbose output
+```
 
 ## Module path
 
