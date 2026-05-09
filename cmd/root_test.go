@@ -78,6 +78,104 @@ func TestRootCmd_UnknownCommand(t *testing.T) {
 	}
 }
 
+// ─── subscription get --agent ────────────────────────────────────────────────
+
+// Realistic single-subscription payload the fake server returns.
+const subDetailAPIResp = `{"success":true,"payload":{"id":42,"status":"ACTIVE","email":"jane@example.com","first_name":"Jane","last_name":"Doe","currency":"USD","total_value":29.0,"delivery_interval":"1 month","billing_interval":"1 month","s_address1":"","s_city":"","s_country":"","b_address1":"","b_city":"","b_country":"","card_brand":"visa","card_last_digits":"4242","card_expiry_month":"12","card_expiry_year":"2027","items":[],"billing_attempts":[]}}`
+
+func TestSubscriptionGet_AgentFlag(t *testing.T) {
+	fakeServer(t, 200, subDetailAPIResp)
+
+	out, err := runCmd(t, "subscription", "get", "42", "--agent")
+	if err != nil {
+		t.Fatalf("--agent returned error: %v", err)
+	}
+	// Must be a single compact JSON line
+	lines := strings.Split(strings.TrimRight(out, "\n"), "\n")
+	if len(lines) != 1 {
+		t.Fatalf("--agent output: expected 1 line, got %d:\n%s", len(lines), out)
+	}
+	var m map[string]any
+	if jsonErr := json.Unmarshal([]byte(lines[0]), &m); jsonErr != nil {
+		t.Fatalf("--agent output is not valid JSON: %v\noutput: %q", jsonErr, out)
+	}
+	if m["id"] != float64(42) {
+		t.Errorf("id: got %v, want 42", m["id"])
+	}
+	if m["status"] != "ACTIVE" {
+		t.Errorf("status: got %v, want ACTIVE", m["status"])
+	}
+}
+
+func TestSubscriptionList_AgentFlag(t *testing.T) {
+	const listResp = `{"success":true,"payload":{"page":1,"total_pages":1,"subscriptions":[{"id":1,"status":"ACTIVE","email":"a@x.com","first_name":"A","last_name":"X","currency":"USD","total_value":10,"delivery_interval":"1 month"}]}}`
+	fakeServer(t, 200, listResp)
+
+	out, err := runCmd(t, "subscription", "list", "--agent")
+	if err != nil {
+		t.Fatalf("--agent list returned error: %v", err)
+	}
+	// Must be NDJSON: 1 sub line + 1 _meta line
+	lines := strings.Split(strings.TrimRight(out, "\n"), "\n")
+	if len(lines) != 2 {
+		t.Fatalf("--agent list: expected 2 lines, got %d:\n%s", len(lines), out)
+	}
+	// Last line must have _meta
+	var last map[string]any
+	_ = json.Unmarshal([]byte(lines[len(lines)-1]), &last)
+	if _, ok := last["_meta"]; !ok {
+		t.Errorf("last line missing _meta: %s", lines[len(lines)-1])
+	}
+}
+
+func TestSubscriptionCancel_AgentFlag(t *testing.T) {
+	fakeServer(t, 200, `{"success":true,"message":"Subscription cancelled."}`)
+
+	out, err := runCmd(t, "subscription", "cancel", "42", "--agent")
+	if err != nil {
+		t.Fatalf("--agent cancel returned error: %v", err)
+	}
+	var m map[string]any
+	if jsonErr := json.Unmarshal([]byte(strings.TrimSpace(out)), &m); jsonErr != nil {
+		t.Fatalf("--agent cancel output not valid JSON: %v\noutput: %q", jsonErr, out)
+	}
+	if m["ok"] != true {
+		t.Errorf("ok: got %v, want true", m["ok"])
+	}
+}
+
+func TestAgent_WinsOverJSON(t *testing.T) {
+	fakeServer(t, 200, subDetailAPIResp)
+
+	out, err := runCmd(t, "subscription", "get", "42", "--agent", "--json")
+	if err != nil {
+		t.Fatalf("unexpected error: %v", err)
+	}
+	// --agent wins: output must be a single compact line, not pretty-printed
+	if strings.Contains(out, "\n  ") {
+		t.Errorf("--agent should win over --json but got pretty-printed output:\n%s", out)
+	}
+}
+
+func TestSEAL_AGENT_MODE_EnvVar(t *testing.T) {
+	fakeServer(t, 200, subDetailAPIResp)
+	t.Setenv("SEAL_AGENT_MODE", "1")
+
+	out, err := runCmd(t, "subscription", "get", "42")
+	if err != nil {
+		t.Fatalf("unexpected error: %v", err)
+	}
+	// Should behave like --agent: single compact JSON line
+	lines := strings.Split(strings.TrimRight(out, "\n"), "\n")
+	if len(lines) != 1 {
+		t.Fatalf("SEAL_AGENT_MODE=1: expected 1 line, got %d:\n%s", len(lines), out)
+	}
+	var m map[string]any
+	if jsonErr := json.Unmarshal([]byte(lines[0]), &m); jsonErr != nil {
+		t.Fatalf("SEAL_AGENT_MODE=1 output not valid JSON: %v\noutput: %q", jsonErr, out)
+	}
+}
+
 // ─── subscription get --json ──────────────────────────────────────────────────
 
 func TestSubscriptionGet_JSONFlag(t *testing.T) {

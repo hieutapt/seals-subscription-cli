@@ -20,14 +20,48 @@ Best practices and operational guidance for AI coding agents using seal-cli.
 
 - **`<noun> <verb>` pattern** — `seal-cli subscription list`, `seal-cli billing-attempt skip`
 - **Short aliases** — `subscription` → `sub`/`s`; `billing-attempt` → `ba`; `profile` → `prof`/`p`; subcommands: `list` → `ls`/`l`, `get` → `show`/`g`, `cancel` → `cx`, `pause` → `p`, `resume` → `r`, `reactivate` → `ra`, `edit` → `e`/`update`, `add-item` → `ai`, `remove-item` → `ri`/`rm`, `reschedule` → `rs`, `delete` → `rm`/`d`, `skip` → `sk`, `unskip` → `us`
-- **Global flags** — `--profile <name>` selects a named profile; `--json` switches all output to raw JSON
+- **Global flags** — `--profile <name>` selects a named profile; `--json` switches all output to raw JSON; `--agent` switches to AI-optimized compact output
 - **503 = rate limit** — the client surfaces this as a readable error; wait and retry
+
+### Agent Output Mode (`--agent`)
+
+Use `--agent` (or set `SEAL_AGENT_MODE=1`) for all tool-use calls. This mode:
+- **`sub get --agent`** → single compact JSON line, whitelisted fields only (~90% fewer tokens than `--json`)
+- **`sub ls --agent`** → NDJSON (one JSON object per line), non-active statuses first, then `{"_meta":{"page":N,"count":N,"has_more":bool}}`
+- **Mutations (`cancel`, `pause`, etc.) `--agent`** → `{"ok":true,"id":N,"action":"verb"}`
+- **Errors `--agent`** → `{"ok":false,"status":404,"error":"...","detail":"/tmp/seal-cli-err-XXXX.json"}` — full API response in the temp file
+
+**Agent field contract for `sub get --agent`:**
+```
+id, status, customer_email, customer_name, currency, total, interval,
+address (optional), card (optional), items[], next_attempts[]
+```
+
+**Agent field contract for `sub ls --agent` rows:**
+```
+id, status, customer_email, currency, total, interval
+```
+
+**Prefer `--agent` over `--json`** in all agent/automated contexts. Use `--json` only when you need the full raw API payload for debugging.
+
+```bash
+# Set once for the whole session
+export SEAL_AGENT_MODE=1
+
+# Per-call
+seal-cli sub get 12345 --agent
+seal-cli sub ls --agent | head -10
+seal-cli sub cancel 12345 --agent
+```
 
 ### Context Window Tips
 
-- Use `--json | jq` to extract specific fields and reduce noise
+- **Use `--agent` mode** — purpose-built for AI agents, ~90% fewer tokens than `--json`
+- Set `SEAL_AGENT_MODE=1` once per session instead of adding `--agent` to every call
+- Use `--json | jq` only when you need full raw API payload for debugging
 - Use `--with-items` and `--with-billing` on list/get to fetch related data in one call
 - Use `-q` to filter `subscription list` by email, first name, or last name before fetching details
+- On errors with `--agent`, the full API response is in the temp file at the path in `detail`
 
 ### Safety Rules
 
@@ -304,9 +338,12 @@ seal-cli profile list
 All commands support:
 
 - `--profile <name>` — use a specific named profile (overrides active profile)
-- `--json` — output raw JSON instead of a formatted table
+- `--json` — output raw JSON instead of a formatted table (full API payload, for jq/debugging)
+- `--agent` — AI-agent-optimized output: compact JSON / NDJSON, whitelisted fields only
 - `--help` — show help
 - `--version` — show version, commit, and build date
+
+`SEAL_AGENT_MODE=1` env var activates `--agent` mode for all commands in the session. `--agent` wins over `--json` if both are set.
 
 ---
 

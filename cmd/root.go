@@ -13,6 +13,7 @@ import (
 var (
 	profile     string
 	jsonOut     bool
+	agentOut    bool
 	versionInfo = "dev"
 )
 
@@ -26,6 +27,7 @@ func SetVersionInfo(version, commit, date string) {
 func NewRootCmd() *cobra.Command {
 	var localProfile string
 	var localJSONOut bool
+	var localAgentOut bool
 
 	root := &cobra.Command{
 		Use:   "seal-cli",
@@ -36,15 +38,26 @@ Authentication:
   Set the SEAL_TOKEN environment variable, or configure a profile:
     seal-cli profile set --name default --token YOUR_TOKEN
 `,
+		PersistentPreRun: func(cmd *cobra.Command, args []string) {
+			// SEAL_AGENT_MODE=1 env var activates agent mode without a flag.
+			// --agent wins over --json if both are set.
+			if !localAgentOut && os.Getenv("SEAL_AGENT_MODE") == "1" {
+				localAgentOut = true
+			}
+			if localAgentOut {
+				localJSONOut = false
+			}
+		},
 	}
 
 	root.PersistentFlags().StringVar(&localProfile, "profile", "", "Config profile to use (default: current_profile in ~/.seal-cli.yaml)")
 	root.PersistentFlags().BoolVar(&localJSONOut, "json", false, "Output raw JSON instead of pretty table")
+	root.PersistentFlags().BoolVar(&localAgentOut, "agent", false, "AI-agent-optimized output: compact JSON / NDJSON, essential fields only")
 	root.Version = versionInfo
 
-	// Wire subcommands with their own closure over localProfile / localJSONOut.
-	root.AddCommand(subscriptionCmd(&localProfile, &localJSONOut))
-	root.AddCommand(billingAttemptCmd(&localProfile, &localJSONOut))
+	// Wire subcommands with their own closure over localProfile / localJSONOut / localAgentOut.
+	root.AddCommand(subscriptionCmd(&localProfile, &localJSONOut, &localAgentOut))
+	root.AddCommand(billingAttemptCmd(&localProfile, &localJSONOut, &localAgentOut))
 	root.AddCommand(profileCmd())
 
 	return root

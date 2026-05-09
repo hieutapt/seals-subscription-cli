@@ -24,15 +24,19 @@ func JSON(data []byte) error {
 func SubscriptionList(data []byte) error {
 	var resp struct {
 		Success bool `json:"success"`
-		Payload []struct {
-			ID        int     `json:"id"`
-			Email     string  `json:"email"`
-			FirstName string  `json:"first_name"`
-			LastName  string  `json:"last_name"`
-			Status    string  `json:"status"`
-			Currency  string  `json:"currency"`
-			Total     float64 `json:"total_value"`
-			Interval  string  `json:"delivery_interval"`
+		Payload struct {
+			Page        int `json:"page"`
+			TotalPages  int `json:"total_pages"`
+			Subscriptions []struct {
+				ID        int     `json:"id"`
+				Email     string  `json:"email"`
+				FirstName string  `json:"first_name"`
+				LastName  string  `json:"last_name"`
+				Status    string  `json:"status"`
+				Currency  string  `json:"currency"`
+				Total     float64 `json:"total_value"`
+				Interval  string  `json:"delivery_interval"`
+			} `json:"subscriptions"`
 		} `json:"payload"`
 	}
 	if err := json.Unmarshal(data, &resp); err != nil {
@@ -43,7 +47,7 @@ func SubscriptionList(data []byte) error {
 		tablewriter.WithHeader([]string{"ID", "Email", "Name", "Status", "Interval", "Total", "Currency"}),
 	)
 
-	for _, s := range resp.Payload {
+	for _, s := range resp.Payload.Subscriptions {
 		_ = table.Append(
 			strconv.Itoa(s.ID),
 			s.Email,
@@ -54,7 +58,13 @@ func SubscriptionList(data []byte) error {
 			s.Currency,
 		)
 	}
-	return table.Render()
+	if err := table.Render(); err != nil {
+		return err
+	}
+	if resp.Payload.TotalPages > 1 {
+		fmt.Printf("  Page %d of %d  (use --page to navigate)\n\n", resp.Payload.Page, resp.Payload.TotalPages)
+	}
+	return nil
 }
 
 // SubscriptionDetail renders a single subscription.
@@ -75,16 +85,19 @@ func SubscriptionDetail(data []byte) error {
 			CardLast  string  `json:"card_last_digits"`
 			CardExpM  string  `json:"card_expiry_month"`
 			CardExpY  string  `json:"card_expiry_year"`
-			Address   string  `json:"s_address1"`
-			City      string  `json:"s_city"`
-			Country   string  `json:"s_country"`
-			Items     []struct {
-				ID    int     `json:"id"`
-				Title string  `json:"title"`
-				Qty   int     `json:"quantity"`
-				Price string  `json:"price"`
-				Final float64 `json:"final_price"`
-			} `json:"items"`
+		Address   string  `json:"s_address1"`
+		City      string  `json:"s_city"`
+		Country   string  `json:"s_country"`
+		BAddress  string  `json:"b_address1"`
+		BCity     string  `json:"b_city"`
+		BCountry  string  `json:"b_country"`
+		Items     []struct {
+			ID    int    `json:"id"`
+			Title string `json:"title"`
+			Qty   int    `json:"quantity"`
+			Price string `json:"price"`
+			Final string `json:"final_price"`
+		} `json:"items"`
 			Attempts []struct {
 				ID     int    `json:"id"`
 				Date   string `json:"date"`
@@ -100,7 +113,11 @@ func SubscriptionDetail(data []byte) error {
 	fmt.Printf("\n  Subscription #%d\n", s.ID)
 	fmt.Printf("  %-20s %s\n", "Status:", s.Status)
 	fmt.Printf("  %-20s %s\n", "Customer:", s.FirstName+" "+s.LastName+" <"+s.Email+">")
-	fmt.Printf("  %-20s %s\n", "Address:", s.Address+", "+s.City+", "+s.Country)
+	addr := s.Address + ", " + s.City + ", " + s.Country
+	if s.Address == "" {
+		addr = s.BAddress + ", " + s.BCity + ", " + s.BCountry
+	}
+	fmt.Printf("  %-20s %s\n", "Address:", addr)
 	fmt.Printf("  %-20s %.2f %s\n", "Total:", s.Total, s.Currency)
 	fmt.Printf("  %-20s %s\n", "Delivery Interval:", s.Interval)
 	fmt.Printf("  %-20s %s\n", "Billing Interval:", s.Billing)
@@ -119,7 +136,7 @@ func SubscriptionDetail(data []byte) error {
 				item.Title,
 				strconv.Itoa(item.Qty),
 				item.Price,
-				fmt.Sprintf("%.2f", item.Final),
+				item.Final,
 			)
 		}
 		_ = t.Render()

@@ -42,13 +42,18 @@ Skip in an emergency: `git push --no-verify`
 ```
 main.go                  # entry point; injects version/commit/date via ldflags
 cmd/                     # Cobra commands (root, subscription, billing_attempt, profile)
+cmd/render.go            # renderSubscriptionDetail/List/Success dispatch helpers
 internal/api/            # HTTP client for Seal Subscriptions REST API
 internal/config/         # profile config (~/.seal-cli.yaml) + SEAL_TOKEN env var
-internal/output/         # table + JSON rendering
+internal/output/         # table + JSON + agent rendering
+  output.go              # SubscriptionList, SubscriptionDetail, Success, ProfileList, JSON
+  agent.go               # AgentSubscriptionDetail, AgentSubscriptionList, AgentSuccess, AgentError
+  agent_types.go         # slim whitelisted structs for --agent output
 ```
 
-- `cmd/root.go` wires global flags (`--profile`, `--json`) and calls `SetVersionInfo` from `main.go`.
+- `cmd/root.go` wires global flags (`--profile`, `--json`, `--agent`) and calls `SetVersionInfo` from `main.go`.
 - All commands resolve auth via `config.ActiveToken(profile)` — env var `SEAL_TOKEN` beats any profile.
+- `--agent` flag (or `SEAL_AGENT_MODE=1` env var) activates AI-optimized output. `--agent` wins over `--json`.
 
 ## tablewriter API
 
