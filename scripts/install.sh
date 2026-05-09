@@ -25,6 +25,7 @@ Options:
     -v, --version <version> Install a specific version (e.g., 0.2.0)
         --install-dir <dir> Override the installation directory
         --no-modify-path    Don't add install dir to shell config files
+        --no-agent-skills   Don't install the agent skill into ~/.agents / ~/.claude
 
 Environment Variables:
     SEAL_INSTALL_DIR        Override the installation directory
@@ -42,6 +43,7 @@ EOF
 requested_version="${SEAL_VERSION:-}"
 install_dir="${SEAL_INSTALL_DIR:-}"
 no_modify_path=false
+no_agent_skills=false
 
 while [[ $# -gt 0 ]]; do
   case "$1" in
@@ -54,6 +56,8 @@ while [[ $# -gt 0 ]]; do
       install_dir="$2"; shift 2 ;;
     --no-modify-path)
       no_modify_path=true; shift ;;
+    --no-agent-skills)
+      no_agent_skills=true; shift ;;
     *) die "Unknown option: $1" ;;
   esac
 done
@@ -136,6 +140,15 @@ if ! command -v "$BINARY_NAME" >/dev/null 2>&1 && [[ "$no_modify_path" == "false
     fi
   else
     echo -e "${MUTED}Add ${install_dir} to your PATH to use seal-cli from anywhere.${NC}"
+  fi
+fi
+
+# --- Install agent skill ---
+if [[ "$no_agent_skills" == "false" ]]; then
+  if "${install_dir}/${BINARY_NAME}" setup 2>/dev/null; then
+    echo -e "${MUTED}Agent skill installed.${NC}"
+  else
+    echo -e "${MUTED}Skipped agent skill install (seal-cli setup failed or not supported).${NC}"
   fi
 fi
 

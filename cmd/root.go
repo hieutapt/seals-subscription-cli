@@ -41,6 +41,7 @@ Authentication:
 Agent usage:
   Use --agent (or SEAL_AGENT_MODE=1) for compact JSON output optimised for LLMs.
   Full reference: skills/seal-cli/SKILL.md
+  Install skill:  seal-cli setup
 `,
 		PersistentPreRun: func(cmd *cobra.Command, args []string) {
 			// SEAL_AGENT_MODE=1 env var activates agent mode without a flag.
@@ -63,6 +64,7 @@ Agent usage:
 	root.AddCommand(subscriptionCmd(&localProfile, &localJSONOut, &localAgentOut))
 	root.AddCommand(billingAttemptCmd(&localProfile, &localJSONOut, &localAgentOut))
 	root.AddCommand(profileCmd())
+	root.AddCommand(setupCmd())
 
 	return root
 }
