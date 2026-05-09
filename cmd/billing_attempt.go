@@ -8,24 +8,24 @@ import (
 	"github.com/hieutapt/seals-subscription-cli/internal/output"
 )
 
-func billingAttemptCmd() *cobra.Command {
+func billingAttemptCmd(profile *string, jsonOut *bool) *cobra.Command {
 	cmd := &cobra.Command{
 		Use:     "billing-attempt",
 		Aliases: []string{"ba"},
 		Short:   "Manage billing attempts",
 	}
 
-	cmd.AddCommand(baRescheduleCmd())
-	cmd.AddCommand(baDeleteCmd())
-	cmd.AddCommand(baSkipCmd())
-	cmd.AddCommand(baUnskipCmd())
+	cmd.AddCommand(baRescheduleCmd(profile, jsonOut))
+	cmd.AddCommand(baDeleteCmd(profile, jsonOut))
+	cmd.AddCommand(baSkipCmd(profile, jsonOut))
+	cmd.AddCommand(baUnskipCmd(profile, jsonOut))
 
 	return cmd
 }
 
 // ─── Reschedule ──────────────────────────────────────────────────────────────
 
-func baRescheduleCmd() *cobra.Command {
+func baRescheduleCmd(profile *string, jsonOut *bool) *cobra.Command {
 	var (
 		id             int
 		subscriptionID int
@@ -58,7 +58,7 @@ func baRescheduleCmd() *cobra.Command {
 				return fmt.Errorf("--timezone is required (e.g. \"+00:00\")")
 			}
 
-			client, err := newClient()
+			client, err := newClient(*profile)
 			if err != nil {
 				return err
 			}
@@ -66,7 +66,7 @@ func baRescheduleCmd() *cobra.Command {
 			if err != nil {
 				return err
 			}
-			if jsonOut {
+			if *jsonOut {
 				return output.JSON(data)
 			}
 			return output.Success(data, fmt.Sprintf("Billing attempt #%d rescheduled to %s %s %s.", id, date, timeStr, timezone))
@@ -85,7 +85,7 @@ func baRescheduleCmd() *cobra.Command {
 
 // ─── Delete ──────────────────────────────────────────────────────────────────
 
-func baDeleteCmd() *cobra.Command {
+func baDeleteCmd(profile *string, jsonOut *bool) *cobra.Command {
 	var (
 		id             int
 		subscriptionID int
@@ -103,7 +103,7 @@ func baDeleteCmd() *cobra.Command {
 				return fmt.Errorf("--subscription-id is required")
 			}
 
-			client, err := newClient()
+			client, err := newClient(*profile)
 			if err != nil {
 				return err
 			}
@@ -111,7 +111,7 @@ func baDeleteCmd() *cobra.Command {
 			if err != nil {
 				return err
 			}
-			if jsonOut {
+			if *jsonOut {
 				return output.JSON(data)
 			}
 			return output.Success(data, fmt.Sprintf("Billing attempt #%d deleted.", id))
@@ -126,7 +126,7 @@ func baDeleteCmd() *cobra.Command {
 
 // ─── Skip ────────────────────────────────────────────────────────────────────
 
-func baSkipCmd() *cobra.Command {
+func baSkipCmd(profile *string, jsonOut *bool) *cobra.Command {
 	var (
 		id             int
 		subscriptionID int
@@ -144,7 +144,7 @@ func baSkipCmd() *cobra.Command {
 				return fmt.Errorf("--subscription-id is required")
 			}
 
-			client, err := newClient()
+			client, err := newClient(*profile)
 			if err != nil {
 				return err
 			}
@@ -152,7 +152,7 @@ func baSkipCmd() *cobra.Command {
 			if err != nil {
 				return err
 			}
-			if jsonOut {
+			if *jsonOut {
 				return output.JSON(data)
 			}
 			return output.Success(data, fmt.Sprintf("Billing attempt #%d skipped.", id))
@@ -167,7 +167,7 @@ func baSkipCmd() *cobra.Command {
 
 // ─── Unskip ──────────────────────────────────────────────────────────────────
 
-func baUnskipCmd() *cobra.Command {
+func baUnskipCmd(profile *string, jsonOut *bool) *cobra.Command {
 	var (
 		id             int
 		subscriptionID int
@@ -185,7 +185,7 @@ func baUnskipCmd() *cobra.Command {
 				return fmt.Errorf("--subscription-id is required")
 			}
 
-			client, err := newClient()
+			client, err := newClient(*profile)
 			if err != nil {
 				return err
 			}
@@ -193,7 +193,7 @@ func baUnskipCmd() *cobra.Command {
 			if err != nil {
 				return err
 			}
-			if jsonOut {
+			if *jsonOut {
 				return output.JSON(data)
 			}
 			return output.Success(data, fmt.Sprintf("Billing attempt #%d unskipped.", id))

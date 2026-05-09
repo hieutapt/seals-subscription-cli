@@ -7,6 +7,7 @@ import (
 	"io"
 	"net/http"
 	"net/url"
+	"os"
 	"time"
 )
 
@@ -20,10 +21,16 @@ type Client struct {
 }
 
 // New creates a new API client with the given token.
+// If the SEAL_API_BASE_URL environment variable is set, it overrides the
+// default base URL. This is intended for testing only.
 func New(token string) *Client {
+	base := defaultBaseURL
+	if override := os.Getenv("SEAL_API_BASE_URL"); override != "" {
+		base = override
+	}
 	return &Client{
 		token:   token,
-		baseURL: defaultBaseURL,
+		baseURL: base,
 		httpClient: &http.Client{
 			Timeout:       30 * time.Second,
 			CheckRedirect: func(req *http.Request, via []*http.Request) error { return nil },

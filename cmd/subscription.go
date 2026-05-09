@@ -11,29 +11,29 @@ import (
 	"github.com/hieutapt/seals-subscription-cli/internal/output"
 )
 
-func subscriptionCmd() *cobra.Command {
+func subscriptionCmd(profile *string, jsonOut *bool) *cobra.Command {
 	cmd := &cobra.Command{
 		Use:     "subscription",
 		Aliases: []string{"sub", "s"},
 		Short:   "Manage subscriptions",
 	}
 
-	cmd.AddCommand(subListCmd())
-	cmd.AddCommand(subGetCmd())
-	cmd.AddCommand(subCancelCmd())
-	cmd.AddCommand(subPauseCmd())
-	cmd.AddCommand(subReactivateCmd())
-	cmd.AddCommand(subResumeCmd())
-	cmd.AddCommand(subEditCmd())
-	cmd.AddCommand(subAddItemCmd())
-	cmd.AddCommand(subRemoveItemCmd())
+	cmd.AddCommand(subListCmd(profile, jsonOut))
+	cmd.AddCommand(subGetCmd(profile, jsonOut))
+	cmd.AddCommand(subCancelCmd(profile, jsonOut))
+	cmd.AddCommand(subPauseCmd(profile, jsonOut))
+	cmd.AddCommand(subReactivateCmd(profile, jsonOut))
+	cmd.AddCommand(subResumeCmd(profile, jsonOut))
+	cmd.AddCommand(subEditCmd(profile, jsonOut))
+	cmd.AddCommand(subAddItemCmd(profile, jsonOut))
+	cmd.AddCommand(subRemoveItemCmd(profile, jsonOut))
 
 	return cmd
 }
 
 // ─── List ────────────────────────────────────────────────────────────────────
 
-func subListCmd() *cobra.Command {
+func subListCmd(profile *string, jsonOut *bool) *cobra.Command {
 	var (
 		query         string
 		page          int
@@ -49,7 +49,7 @@ func subListCmd() *cobra.Command {
 		Aliases: []string{"ls", "l"},
 		Short:   "List subscriptions",
 		RunE: func(cmd *cobra.Command, args []string) error {
-			client, err := newClient()
+			client, err := newClient(*profile)
 			if err != nil {
 				return err
 			}
@@ -67,7 +67,7 @@ func subListCmd() *cobra.Command {
 				return err
 			}
 
-			if jsonOut {
+			if *jsonOut {
 				return output.JSON(data)
 			}
 			return output.SubscriptionList(data)
@@ -87,7 +87,7 @@ func subListCmd() *cobra.Command {
 
 // ─── Get ─────────────────────────────────────────────────────────────────────
 
-func subGetCmd() *cobra.Command {
+func subGetCmd(profile *string, jsonOut *bool) *cobra.Command {
 	var id int
 
 	cmd := &cobra.Command{
@@ -106,7 +106,7 @@ func subGetCmd() *cobra.Command {
 				return fmt.Errorf("subscription ID is required (use --id or pass as argument)")
 			}
 
-			client, err := newClient()
+			client, err := newClient(*profile)
 			if err != nil {
 				return err
 			}
@@ -116,7 +116,7 @@ func subGetCmd() *cobra.Command {
 				return err
 			}
 
-			if jsonOut {
+			if *jsonOut {
 				return output.JSON(data)
 			}
 			return output.SubscriptionDetail(data)
@@ -129,7 +129,7 @@ func subGetCmd() *cobra.Command {
 
 // ─── Cancel ──────────────────────────────────────────────────────────────────
 
-func subCancelCmd() *cobra.Command {
+func subCancelCmd(profile *string, jsonOut *bool) *cobra.Command {
 	var id int
 
 	cmd := &cobra.Command{
@@ -141,7 +141,7 @@ func subCancelCmd() *cobra.Command {
 			if err != nil {
 				return err
 			}
-			client, err := newClient()
+			client, err := newClient(*profile)
 			if err != nil {
 				return err
 			}
@@ -149,7 +149,7 @@ func subCancelCmd() *cobra.Command {
 			if err != nil {
 				return err
 			}
-			if jsonOut {
+			if *jsonOut {
 				return output.JSON(data)
 			}
 			return output.Success(data, fmt.Sprintf("Subscription #%d cancelled.", id))
@@ -162,7 +162,7 @@ func subCancelCmd() *cobra.Command {
 
 // ─── Pause ───────────────────────────────────────────────────────────────────
 
-func subPauseCmd() *cobra.Command {
+func subPauseCmd(profile *string, jsonOut *bool) *cobra.Command {
 	var id int
 
 	cmd := &cobra.Command{
@@ -174,7 +174,7 @@ func subPauseCmd() *cobra.Command {
 			if err != nil {
 				return err
 			}
-			client, err := newClient()
+			client, err := newClient(*profile)
 			if err != nil {
 				return err
 			}
@@ -182,7 +182,7 @@ func subPauseCmd() *cobra.Command {
 			if err != nil {
 				return err
 			}
-			if jsonOut {
+			if *jsonOut {
 				return output.JSON(data)
 			}
 			return output.Success(data, fmt.Sprintf("Subscription #%d paused.", id))
@@ -195,7 +195,7 @@ func subPauseCmd() *cobra.Command {
 
 // ─── Reactivate ──────────────────────────────────────────────────────────────
 
-func subReactivateCmd() *cobra.Command {
+func subReactivateCmd(profile *string, jsonOut *bool) *cobra.Command {
 	var id int
 
 	cmd := &cobra.Command{
@@ -207,7 +207,7 @@ func subReactivateCmd() *cobra.Command {
 			if err != nil {
 				return err
 			}
-			client, err := newClient()
+			client, err := newClient(*profile)
 			if err != nil {
 				return err
 			}
@@ -215,7 +215,7 @@ func subReactivateCmd() *cobra.Command {
 			if err != nil {
 				return err
 			}
-			if jsonOut {
+			if *jsonOut {
 				return output.JSON(data)
 			}
 			return output.Success(data, fmt.Sprintf("Subscription #%d reactivated.", id))
@@ -228,7 +228,7 @@ func subReactivateCmd() *cobra.Command {
 
 // ─── Resume ──────────────────────────────────────────────────────────────────
 
-func subResumeCmd() *cobra.Command {
+func subResumeCmd(profile *string, jsonOut *bool) *cobra.Command {
 	var id int
 
 	cmd := &cobra.Command{
@@ -240,7 +240,7 @@ func subResumeCmd() *cobra.Command {
 			if err != nil {
 				return err
 			}
-			client, err := newClient()
+			client, err := newClient(*profile)
 			if err != nil {
 				return err
 			}
@@ -248,7 +248,7 @@ func subResumeCmd() *cobra.Command {
 			if err != nil {
 				return err
 			}
-			if jsonOut {
+			if *jsonOut {
 				return output.JSON(data)
 			}
 			return output.Success(data, fmt.Sprintf("Subscription #%d resumed.", id))
@@ -261,7 +261,7 @@ func subResumeCmd() *cobra.Command {
 
 // ─── Edit ────────────────────────────────────────────────────────────────────
 
-func subEditCmd() *cobra.Command {
+func subEditCmd(profile *string, jsonOut *bool) *cobra.Command {
 	var (
 		id               int
 		deliveryInterval string
@@ -359,7 +359,7 @@ Examples:
 				return fmt.Errorf("no fields specified to edit. Use --help to see available flags")
 			}
 
-			client, err := newClient()
+			client, err := newClient(*profile)
 			if err != nil {
 				return err
 			}
@@ -368,7 +368,7 @@ Examples:
 			if err != nil {
 				return err
 			}
-			if jsonOut {
+			if *jsonOut {
 				return output.JSON(data)
 			}
 			fields := make([]string, 0, len(edit))
@@ -404,7 +404,7 @@ Examples:
 
 // ─── Add Item ────────────────────────────────────────────────────────────────
 
-func subAddItemCmd() *cobra.Command {
+func subAddItemCmd(profile *string, jsonOut *bool) *cobra.Command {
 	var (
 		id               int
 		productID        string
@@ -471,7 +471,7 @@ Examples:
 				item.OneTime = 1
 			}
 
-			client, err := newClient()
+			client, err := newClient(*profile)
 			if err != nil {
 				return err
 			}
@@ -479,7 +479,7 @@ Examples:
 			if err != nil {
 				return err
 			}
-			if jsonOut {
+			if *jsonOut {
 				return output.JSON(data)
 			}
 			return output.Success(data, fmt.Sprintf("Item %q added to subscription #%d.", title, id))
@@ -502,7 +502,7 @@ Examples:
 
 // ─── Remove Item ─────────────────────────────────────────────────────────────
 
-func subRemoveItemCmd() *cobra.Command {
+func subRemoveItemCmd(profile *string, jsonOut *bool) *cobra.Command {
 	var (
 		id      int
 		itemIDs []int
@@ -527,7 +527,7 @@ Examples:
 				return fmt.Errorf("at least one --item-id is required")
 			}
 
-			client, err := newClient()
+			client, err := newClient(*profile)
 			if err != nil {
 				return err
 			}
@@ -535,7 +535,7 @@ Examples:
 			if err != nil {
 				return err
 			}
-			if jsonOut {
+			if *jsonOut {
 				return output.JSON(data)
 			}
 			ids := make([]string, len(itemIDs))
