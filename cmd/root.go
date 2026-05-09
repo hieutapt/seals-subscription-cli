@@ -37,6 +37,10 @@ func NewRootCmd() *cobra.Command {
 Authentication:
   Set the SEAL_TOKEN environment variable, or configure a profile:
     seal-cli profile set --name default --token YOUR_TOKEN
+
+Agent usage:
+  Use --agent (or SEAL_AGENT_MODE=1) for compact JSON output optimised for LLMs.
+  Full reference: skills/seal-cli/SKILL.md
 `,
 		PersistentPreRun: func(cmd *cobra.Command, args []string) {
 			// SEAL_AGENT_MODE=1 env var activates agent mode without a flag.
