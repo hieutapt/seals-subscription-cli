@@ -6,17 +6,18 @@ package output
 
 // agentSubscription is the whitelisted view of a single subscription record.
 type agentSubscription struct {
-	ID            int64          `json:"id"`
-	Status        string         `json:"status,omitempty"`
-	CustomerEmail string         `json:"customer_email,omitempty"`
-	CustomerName  string         `json:"customer_name,omitempty"`
-	Currency      string         `json:"currency,omitempty"`
-	Total         string         `json:"total,omitempty"`
-	Interval      string         `json:"interval,omitempty"`
-	Address       string         `json:"address,omitempty"`
-	CardSummary   string         `json:"card,omitempty"`
-	Items         []agentItem    `json:"items,omitempty"`
-	NextAttempts  []agentAttempt `json:"next_attempts,omitempty"`
+	ID            int64           `json:"id"`
+	Status        string          `json:"status,omitempty"`
+	CustomerEmail string          `json:"customer_email,omitempty"`
+	CustomerName  string          `json:"customer_name,omitempty"`
+	Currency      string          `json:"currency,omitempty"`
+	Total         string          `json:"total,omitempty"`
+	Interval      string          `json:"interval,omitempty"`
+	Address       string          `json:"address,omitempty"`
+	CardSummary   string          `json:"card,omitempty"`
+	Items         []agentItem     `json:"items,omitempty"`
+	NextAttempts  []agentAttempt  `json:"next_attempts,omitempty"`  // auto_charge payment type
+	Invoices      []agentInvoice  `json:"invoices,omitempty"`        // recurring_invoice payment type
 }
 
 // agentListItem is the slimmer per-row view used in list NDJSON output.
@@ -37,11 +38,18 @@ type agentItem struct {
 	Price string `json:"price,omitempty"`
 }
 
-// agentAttempt is a billing attempt entry.
+// agentAttempt is a billing attempt entry (auto_charge payment type).
 type agentAttempt struct {
 	ID     int64  `json:"id"`
 	Date   string `json:"date,omitempty"`
 	Status string `json:"status,omitempty"`
+}
+
+// agentInvoice is an invoice entry (recurring_invoice payment type).
+type agentInvoice struct {
+	ID            int64  `json:"id"`
+	Date          string `json:"date,omitempty"`
+	PaymentStatus string `json:"payment_status,omitempty"`
 }
 
 // agentMeta is the final line of a list NDJSON stream.

@@ -7,6 +7,7 @@ import (
 	"os"
 	"path/filepath"
 	"sort"
+	"strings"
 )
 
 // statusWeight returns a sort priority for failure-first ordering.
@@ -58,6 +59,11 @@ func AgentSubscriptionDetail(data []byte) error {
 				Date   string `json:"date"`
 				Status string `json:"status"`
 			} `json:"billing_attempts"`
+			Invoices []struct {
+				ID            int64  `json:"id"`
+				Date          string `json:"date"`
+				PaymentStatus string `json:"payment_status"`
+			} `json:"invoices"`
 		} `json:"payload"`
 	}
 	if err := json.Unmarshal(data, &resp); err != nil {
@@ -69,7 +75,7 @@ func AgentSubscriptionDetail(data []byte) error {
 		ID:            p.ID,
 		Status:        p.Status,
 		CustomerEmail: p.Email,
-		CustomerName:  p.FirstName + " " + p.LastName,
+		CustomerName:  strings.TrimSpace(p.FirstName + " " + strings.TrimSpace(p.LastName)),
 		Currency:      p.Currency,
 		Total:         fmt.Sprintf("%.2f", p.Total),
 		Interval:      p.Interval,
@@ -103,8 +109,11 @@ func AgentSubscriptionDetail(data []byte) error {
 		})
 	}
 
-	// Next billing attempts
+	// Next billing attempts (auto_charge): skip completed past attempts
 	for _, a := range p.Attempts {
+		if a.Status == "completed" {
+			continue
+		}
 		status := a.Status
 		if status == "" {
 			status = "scheduled"
@@ -113,6 +122,15 @@ func AgentSubscriptionDetail(data []byte) error {
 			ID:     a.ID,
 			Date:   a.Date,
 			Status: status,
+		})
+	}
+
+	// Invoices (recurring_invoice payment type)
+	for _, inv := range p.Invoices {
+		out.Invoices = append(out.Invoices, agentInvoice{
+			ID:            inv.ID,
+			Date:          inv.Date,
+			PaymentStatus: inv.PaymentStatus,
 		})
 	}
 
