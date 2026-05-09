@@ -45,8 +45,9 @@ func subListCmd() *cobra.Command {
 	)
 
 	cmd := &cobra.Command{
-		Use:   "list",
-		Short: "List subscriptions",
+		Use:     "list",
+		Aliases: []string{"ls", "l"},
+		Short:   "List subscriptions",
 		RunE: func(cmd *cobra.Command, args []string) error {
 			client, err := newClient()
 			if err != nil {
@@ -90,8 +91,9 @@ func subGetCmd() *cobra.Command {
 	var id int
 
 	cmd := &cobra.Command{
-		Use:   "get",
-		Short: "Get details of a subscription",
+		Use:     "get",
+		Aliases: []string{"show", "g"},
+		Short:   "Get details of a subscription",
 		RunE: func(cmd *cobra.Command, args []string) error {
 			if id == 0 && len(args) > 0 {
 				n, err := strconv.Atoi(args[0])
@@ -131,8 +133,9 @@ func subCancelCmd() *cobra.Command {
 	var id int
 
 	cmd := &cobra.Command{
-		Use:   "cancel [id]",
-		Short: "Cancel a subscription",
+		Use:     "cancel [id]",
+		Aliases: []string{"cx"},
+		Short:   "Cancel a subscription",
 		RunE: func(cmd *cobra.Command, args []string) error {
 			id, err := resolveID(id, args, "subscription")
 			if err != nil {
@@ -163,8 +166,9 @@ func subPauseCmd() *cobra.Command {
 	var id int
 
 	cmd := &cobra.Command{
-		Use:   "pause [id]",
-		Short: "Pause a subscription",
+		Use:     "pause [id]",
+		Aliases: []string{"p"},
+		Short:   "Pause a subscription",
 		RunE: func(cmd *cobra.Command, args []string) error {
 			id, err := resolveID(id, args, "subscription")
 			if err != nil {
@@ -195,8 +199,9 @@ func subReactivateCmd() *cobra.Command {
 	var id int
 
 	cmd := &cobra.Command{
-		Use:   "reactivate [id]",
-		Short: "Reactivate a cancelled subscription",
+		Use:     "reactivate [id]",
+		Aliases: []string{"ra"},
+		Short:   "Reactivate a cancelled subscription",
 		RunE: func(cmd *cobra.Command, args []string) error {
 			id, err := resolveID(id, args, "subscription")
 			if err != nil {
@@ -227,8 +232,9 @@ func subResumeCmd() *cobra.Command {
 	var id int
 
 	cmd := &cobra.Command{
-		Use:   "resume [id]",
-		Short: "Resume a paused subscription",
+		Use:     "resume [id]",
+		Aliases: []string{"r"},
+		Short:   "Resume a paused subscription",
 		RunE: func(cmd *cobra.Command, args []string) error {
 			id, err := resolveID(id, args, "subscription")
 			if err != nil {
@@ -279,8 +285,9 @@ func subEditCmd() *cobra.Command {
 	)
 
 	cmd := &cobra.Command{
-		Use:   "edit [id]",
-		Short: "Edit a subscription",
+		Use:     "edit [id]",
+		Aliases: []string{"e", "update"},
+		Short:   "Edit a subscription",
 		Long: `Edit subscription fields. Only the flags you provide will be sent.
 
 Examples:
@@ -412,8 +419,9 @@ func subAddItemCmd() *cobra.Command {
 	)
 
 	cmd := &cobra.Command{
-		Use:   "add-item [subscription-id]",
-		Short: "Add an item to a subscription",
+		Use:     "add-item [subscription-id]",
+		Aliases: []string{"ai"},
+		Short:   "Add an item to a subscription",
 		Long: `Add a single item to a subscription.
 
 Examples:
@@ -501,8 +509,9 @@ func subRemoveItemCmd() *cobra.Command {
 	)
 
 	cmd := &cobra.Command{
-		Use:   "remove-item [subscription-id]",
-		Short: "Remove one or more items from a subscription",
+		Use:     "remove-item [subscription-id]",
+		Aliases: []string{"ri", "rm"},
+		Short:   "Remove one or more items from a subscription",
 		Long: `Remove items from a subscription by their item IDs.
 Use 'seal-cli subscription get <id>' to find item IDs.
 

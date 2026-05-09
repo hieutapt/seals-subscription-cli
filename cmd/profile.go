@@ -11,8 +11,9 @@ import (
 
 func profileCmd() *cobra.Command {
 	cmd := &cobra.Command{
-		Use:   "profile",
-		Short: "Manage named API profiles",
+		Use:     "profile",
+		Aliases: []string{"prof", "p"},
+		Short:   "Manage named API profiles",
 	}
 
 	cmd.AddCommand(profileSetCmd())
@@ -30,8 +31,9 @@ func profileSetCmd() *cobra.Command {
 	)
 
 	cmd := &cobra.Command{
-		Use:   "set",
-		Short: "Create or update a profile",
+		Use:     "set",
+		Aliases: []string{"add", "create"},
+		Short:   "Create or update a profile",
 		Example: `  seal-cli profile set --name production --token abc123
   seal-cli profile set --name staging --token xyz --shop "My Staging Shop"`,
 		RunE: func(cmd *cobra.Command, args []string) error {
@@ -60,8 +62,9 @@ func profileSetCmd() *cobra.Command {
 
 func profileUseCmd() *cobra.Command {
 	return &cobra.Command{
-		Use:   "use [name]",
-		Short: "Set the active profile",
+		Use:     "use [name]",
+		Aliases: []string{"switch", "u"},
+		Short:   "Set the active profile",
 		Args:  cobra.ExactArgs(1),
 		RunE: func(cmd *cobra.Command, args []string) error {
 			if err := config.UseProfile(args[0]); err != nil {
@@ -76,7 +79,7 @@ func profileUseCmd() *cobra.Command {
 func profileListCmd() *cobra.Command {
 	return &cobra.Command{
 		Use:     "list",
-		Aliases: []string{"ls"},
+		Aliases: []string{"ls", "l"},
 		Short:   "List all profiles",
 		RunE: func(cmd *cobra.Command, args []string) error {
 			cfg, err := config.ListProfiles()

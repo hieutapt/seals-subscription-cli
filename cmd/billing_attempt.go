@@ -36,8 +36,9 @@ func baRescheduleCmd() *cobra.Command {
 	)
 
 	cmd := &cobra.Command{
-		Use:   "reschedule",
-		Short: "Reschedule a billing attempt",
+		Use:     "reschedule",
+		Aliases: []string{"rs"},
+		Short:   "Reschedule a billing attempt",
 		Example: `  seal-cli billing-attempt reschedule --id 123 --subscription-id 456 \
     --date 2025-12-01 --time 14:30 --timezone "-05:00"`,
 		RunE: func(cmd *cobra.Command, args []string) error {
@@ -91,8 +92,9 @@ func baDeleteCmd() *cobra.Command {
 	)
 
 	cmd := &cobra.Command{
-		Use:   "delete",
-		Short: "Delete a billing attempt",
+		Use:     "delete",
+		Aliases: []string{"rm", "d"},
+		Short:   "Delete a billing attempt",
 		RunE: func(cmd *cobra.Command, args []string) error {
 			if id == 0 {
 				return fmt.Errorf("--id is required")
@@ -131,8 +133,9 @@ func baSkipCmd() *cobra.Command {
 	)
 
 	cmd := &cobra.Command{
-		Use:   "skip",
-		Short: "Skip a billing attempt",
+		Use:     "skip",
+		Aliases: []string{"sk"},
+		Short:   "Skip a billing attempt",
 		RunE: func(cmd *cobra.Command, args []string) error {
 			if id == 0 {
 				return fmt.Errorf("--id is required")
@@ -171,8 +174,9 @@ func baUnskipCmd() *cobra.Command {
 	)
 
 	cmd := &cobra.Command{
-		Use:   "unskip",
-		Short: "Unskip a previously skipped billing attempt",
+		Use:     "unskip",
+		Aliases: []string{"us"},
+		Short:   "Unskip a previously skipped billing attempt",
 		RunE: func(cmd *cobra.Command, args []string) error {
 			if id == 0 {
 				return fmt.Errorf("--id is required")
