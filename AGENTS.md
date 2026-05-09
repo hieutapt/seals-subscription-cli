@@ -15,6 +15,24 @@ go test ./...             # run all tests
 go test ./internal/api/... -v  # run API tests with verbose output
 ```
 
+## Local SDLC (git hooks)
+
+A `pre-push` hook runs `go test ./...` before every push. Install it once after cloning:
+
+```bash
+cp scripts/pre-push .git/hooks/pre-push
+chmod +x .git/hooks/pre-push
+```
+
+Skip in an emergency: `git push --no-verify`
+
+## CI
+
+`.github/workflows/release.yml` runs two jobs:
+
+- **test** — triggers on every push to `main` and every pull request; runs `go build ./...` then `go test ./... -v -count=1`.
+- **release** — triggers on `v*` tags only; gated behind `test` passing; runs GoReleaser.
+
 ## Module path
 
 `github.com/hieutapt/seals-subscription-cli` — must match in every `*.go` import and `go.mod`. Do not use `github.com/hieu/`.

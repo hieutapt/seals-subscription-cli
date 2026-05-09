@@ -1,0 +1,6 @@
+#!/bin/sh
+# Run tests before every push. To skip in an emergency: git push --no-verify
+set -e
+echo "▶ go test ./..."
+go test ./...
+echo "✓ All tests passed."

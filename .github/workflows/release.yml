@@ -2,8 +2,11 @@ name: Release
 
 on:
   push:
+    branches: ["main"]
     tags:
       - "v*"
+  pull_request:
+    branches: ["main"]
 
 permissions:
   contents: write
@@ -12,7 +15,29 @@ env:
   FORCE_JAVASCRIPT_ACTIONS_TO_NODE24: true
 
 jobs:
+  test:
+    name: Test
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Set up Go
+        uses: actions/setup-go@v5
+        with:
+          go-version-file: go.mod
+          cache: true
+
+      - name: Build
+        run: go build ./...
+
+      - name: Test
+        run: go test ./... -v -count=1
+
   release:
+    name: Release
+    needs: test
+    if: startsWith(github.ref, 'refs/tags/v')
     runs-on: ubuntu-latest
     steps:
       - name: Checkout
