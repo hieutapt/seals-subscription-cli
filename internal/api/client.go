@@ -168,6 +168,35 @@ func (c *Client) EditSubscription(id int, edit map[string]interface{}) ([]byte, 
 	})
 }
 
+// SubscriptionItem represents an item to add to a subscription.
+type SubscriptionItem struct {
+	ProductID        string  `json:"product_id"`
+	VariantID        string  `json:"variant_id"`
+	Title            string  `json:"title"`
+	SKU              string  `json:"sku,omitempty"`
+	Price            float64 `json:"price"`
+	Quantity         int     `json:"quantity"`
+	Taxable          int     `json:"taxable"`
+	RequiresShipping int     `json:"requires_shipping"`
+	OneTime          int     `json:"one_time"`
+}
+
+func (c *Client) AddItems(subscriptionID int, items []SubscriptionItem) ([]byte, error) {
+	return c.put("/subscription", map[string]interface{}{
+		"id":        subscriptionID,
+		"action":    "add_items",
+		"add_items": items,
+	})
+}
+
+func (c *Client) RemoveItems(subscriptionID int, itemIDs []int) ([]byte, error) {
+	return c.put("/subscription", map[string]interface{}{
+		"id":           subscriptionID,
+		"action":       "remove_items",
+		"remove_items": itemIDs,
+	})
+}
+
 // ─── Billing Attempts ────────────────────────────────────────────────────────
 
 func (c *Client) RescheduleBillingAttempt(id, subscriptionID int, date, timeStr, timezone string, resetSchedule bool) ([]byte, error) {

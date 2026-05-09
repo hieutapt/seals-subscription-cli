@@ -59,7 +59,8 @@ Local builds show `dev / none / unknown`.
 
 Seal Subscriptions Merchant API (`https://app.sealsubscriptions.com/shopify/merchant/api`):
 - Subscriptions: list, get, cancel, pause, reactivate, resume, edit
+- Subscription items: add-item, remove-item
 - Billing attempts: reschedule, delete, skip, unskip
 - Profile management (local only, not an API endpoint)
 
-Not implemented: create subscription, add/remove items, discount codes, webhooks, fulfillment orders, magic link, quick checkout URL.
+Not implemented: create subscription, discount codes, webhooks, fulfillment orders, magic link, quick checkout URL.

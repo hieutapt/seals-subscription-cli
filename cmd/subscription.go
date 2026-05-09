@@ -25,6 +25,8 @@ func subscriptionCmd() *cobra.Command {
 	cmd.AddCommand(subReactivateCmd())
 	cmd.AddCommand(subResumeCmd())
 	cmd.AddCommand(subEditCmd())
+	cmd.AddCommand(subAddItemCmd())
+	cmd.AddCommand(subRemoveItemCmd())
 
 	return cmd
 }
@@ -390,6 +392,153 @@ Examples:
 	cmd.Flags().StringVar(&phone, "phone", "", "Shipping phone")
 	cmd.Flags().StringVar(&company, "company", "", "Shipping company")
 
+	return cmd
+}
+
+// ─── Add Item ────────────────────────────────────────────────────────────────
+
+func subAddItemCmd() *cobra.Command {
+	var (
+		id               int
+		productID        string
+		variantID        string
+		title            string
+		sku              string
+		price            float64
+		quantity         int
+		taxable          bool
+		requiresShipping bool
+		oneTime          bool
+	)
+
+	cmd := &cobra.Command{
+		Use:   "add-item [subscription-id]",
+		Short: "Add an item to a subscription",
+		Long: `Add a single item to a subscription.
+
+Examples:
+  seal-cli subscription add-item 12345 \
+    --product-id 4648340258949 --variant-id 32694645424261 \
+    --title "Bag of coffee 1kg" --price 24.00 --quantity 1
+
+  seal-cli subscription add-item 12345 \
+    --product-id 4648340258949 --variant-id 32694645424261 \
+    --title "One-time add-on" --price 9.99 --quantity 1 --one-time`,
+		RunE: func(cmd *cobra.Command, args []string) error {
+			id, err := resolveID(id, args, "subscription")
+			if err != nil {
+				return err
+			}
+			if productID == "" {
+				return fmt.Errorf("--product-id is required")
+			}
+			if variantID == "" {
+				return fmt.Errorf("--variant-id is required")
+			}
+			if title == "" {
+				return fmt.Errorf("--title is required")
+			}
+			if price <= 0 {
+				return fmt.Errorf("--price is required and must be greater than 0")
+			}
+			if quantity <= 0 {
+				quantity = 1
+			}
+
+			item := api.SubscriptionItem{
+				ProductID: productID,
+				VariantID: variantID,
+				Title:     title,
+				SKU:       sku,
+				Price:     price,
+				Quantity:  quantity,
+			}
+			if taxable {
+				item.Taxable = 1
+			}
+			if requiresShipping {
+				item.RequiresShipping = 1
+			}
+			if oneTime {
+				item.OneTime = 1
+			}
+
+			client, err := newClient()
+			if err != nil {
+				return err
+			}
+			data, err := client.AddItems(id, []api.SubscriptionItem{item})
+			if err != nil {
+				return err
+			}
+			if jsonOut {
+				return output.JSON(data)
+			}
+			return output.Success(data, fmt.Sprintf("Item %q added to subscription #%d.", title, id))
+		},
+	}
+
+	cmd.Flags().IntVar(&id, "id", 0, "Subscription ID")
+	cmd.Flags().StringVar(&productID, "product-id", "", "Shopify product ID (required)")
+	cmd.Flags().StringVar(&variantID, "variant-id", "", "Shopify variant ID (required)")
+	cmd.Flags().StringVar(&title, "title", "", "Product title (required)")
+	cmd.Flags().StringVar(&sku, "sku", "", "Product SKU")
+	cmd.Flags().Float64Var(&price, "price", 0, "Item price in subscription currency (required)")
+	cmd.Flags().IntVar(&quantity, "quantity", 1, "Quantity")
+	cmd.Flags().BoolVar(&taxable, "taxable", false, "Item is taxable")
+	cmd.Flags().BoolVar(&requiresShipping, "requires-shipping", true, "Item requires shipping")
+	cmd.Flags().BoolVar(&oneTime, "one-time", false, "Remove after next renewal (one-time add-on)")
+
+	return cmd
+}
+
+// ─── Remove Item ─────────────────────────────────────────────────────────────
+
+func subRemoveItemCmd() *cobra.Command {
+	var (
+		id      int
+		itemIDs []int
+	)
+
+	cmd := &cobra.Command{
+		Use:   "remove-item [subscription-id]",
+		Short: "Remove one or more items from a subscription",
+		Long: `Remove items from a subscription by their item IDs.
+Use 'seal-cli subscription get <id>' to find item IDs.
+
+Examples:
+  seal-cli subscription remove-item 12345 --item-id 1014923
+  seal-cli subscription remove-item 12345 --item-id 1014923 --item-id 1014921`,
+		RunE: func(cmd *cobra.Command, args []string) error {
+			id, err := resolveID(id, args, "subscription")
+			if err != nil {
+				return err
+			}
+			if len(itemIDs) == 0 {
+				return fmt.Errorf("at least one --item-id is required")
+			}
+
+			client, err := newClient()
+			if err != nil {
+				return err
+			}
+			data, err := client.RemoveItems(id, itemIDs)
+			if err != nil {
+				return err
+			}
+			if jsonOut {
+				return output.JSON(data)
+			}
+			ids := make([]string, len(itemIDs))
+			for i, id := range itemIDs {
+				ids[i] = strconv.Itoa(id)
+			}
+			return output.Success(data, fmt.Sprintf("Item(s) %s removed from subscription #%d.", strings.Join(ids, ", "), id))
+		},
+	}
+
+	cmd.Flags().IntVar(&id, "id", 0, "Subscription ID")
+	cmd.Flags().IntSliceVar(&itemIDs, "item-id", nil, "Item ID to remove (repeat for multiple)")
 	return cmd
 }
 
