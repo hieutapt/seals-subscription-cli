@@ -87,3 +87,29 @@ Seal Subscriptions Merchant API (`https://app.sealsubscriptions.com/shopify/merc
 - Profile management (local only, not an API endpoint)
 
 Not implemented: create subscription, discount codes, webhooks, fulfillment orders, magic link, quick checkout URL.
+
+## Install script
+
+`scripts/install.sh` is the canonical curl-installable installer. It is also copied verbatim to `docs/install` for GitHub Pages serving.
+
+**Keep them in sync** — after editing `scripts/install.sh`, run:
+```bash
+cp scripts/install.sh docs/install
+```
+
+The install URL (once GitHub Pages is enabled on the `docs/` folder of `main`):
+```bash
+curl -fsSL https://hieutapt.github.io/seals-subscription-cli/install | bash
+```
+
+## Agent skill
+
+`skills/seal-cli/SKILL.md` is the agent skill file for seal-cli. It documents all commands, flags, aliases, and workflow patterns for AI agents.
+
+To install the skill into an agent environment:
+```bash
+# Copy to the agent skills directory (adjust path to your setup)
+cp -r skills/seal-cli ~/.claude/skills/seal-cli
+```
+
+The skill is self-contained — no external dependencies.
