@@ -1,0 +1,71 @@
+version: 2
+
+project_name: seal-cli
+
+before:
+  hooks:
+    - go mod tidy
+
+builds:
+  - id: seal-cli
+    main: .
+    binary: seal-cli
+    env:
+      - CGO_ENABLED=0
+    goos:
+      - darwin
+      - linux
+      - windows
+    goarch:
+      - amd64
+      - arm64
+    ldflags:
+      - -s -w
+      - -X main.version={{.Version}}
+      - -X main.commit={{.Commit}}
+      - -X main.date={{.Date}}
+
+archives:
+  - id: seal-cli
+    formats:
+      - tar.gz
+    format_overrides:
+      - goos: windows
+        formats:
+          - zip
+    name_template: "{{ .ProjectName }}_{{ .Version }}_{{ .Os }}_{{ .Arch }}"
+
+checksum:
+  name_template: "checksums.txt"
+
+brews:
+  - name: seal-cli
+    repository:
+      owner: hieutapt  # ← replace with your GitHub username
+      name: homebrew-tap
+      token: "{{ .Env.HOMEBREW_TAP_GITHUB_TOKEN }}"
+    directory: Formula
+    homepage: "https://github.com/hieutapt/seals-subscription-cli"
+    description: "CLI for the Seal Subscriptions Merchant API"
+    license: "MIT"
+    install: |
+      bin.install "seal-cli"
+    test: |
+      system "#{bin}/seal-cli", "--help"
+
+release:
+  github:
+    owner: hieutapt  # ← replace with your GitHub username
+    name: seals-subscription-cli
+  draft: false
+  prerelease: auto
+
+changelog:
+  sort: asc
+  filters:
+    exclude:
+      - "^docs:"
+      - "^test:"
+      - "^chore:"
+      - Merge pull request
+      - Merge branch
